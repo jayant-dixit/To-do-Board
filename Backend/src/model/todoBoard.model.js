@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 
 const boardSchema = new mongoose.Schema({
+    boardName:{
+        type: String,
+        required: true
+    },
     users: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

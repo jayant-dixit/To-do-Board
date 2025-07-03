@@ -1,10 +1,11 @@
 import User from "../model/user.model.js";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import TodoBoard from "../model/todoBoard.model.js";
 
 const registerUser = async (req, res, next) => {
     try {
-        const { name, username, password } = req.body;
+        const { name, username, password, boardName } = req.body;
 
         if (!name || !username || !password) {
             return res.status(400).json({ success: false, message: 'All fields are required' });
@@ -23,6 +24,11 @@ const registerUser = async (req, res, next) => {
 
         const user = new User({ name, username, password: hashedPassword });
         await user.save();
+
+        const board = await TodoBoard.findOne({ boardName });
+        board.users.push(user._id);
+        await board.save();
+
         return res.status(201).json({ success: true, message: 'User registered successfully' });
     } catch (error) {
         console.error('Error registering user:', error);
