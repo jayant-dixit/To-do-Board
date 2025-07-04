@@ -29,7 +29,7 @@ const registerUser = async (req, res, next) => {
         board.users.push(user._id);
         await board.save();
 
-        return res.status(201).json({ success: true, message: 'User registered successfully' });
+        return res.status(201).json({ success: true, message: 'User registered successfully', user });
     } catch (error) {
         console.error('Error registering user:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });
@@ -64,7 +64,7 @@ const loginUser = async (req, res, next) => {
             httpOnly: true,                                                
         });
 
-        return res.status(200).json({ success: true, message: 'Login successful' });
+        return res.status(200).json({ success: true, message: 'Login successful', user });
     } catch (error) {
         console.error('Error logging in user:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });

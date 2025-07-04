@@ -19,7 +19,7 @@ const createBoard = async (req, res) => {
 
 const fetchActivityLogs = async (req, res) => {
     try {
-        const { boardName } = req.params;
+        const { boardName } = req.body;
 
         const board = await TodoBoard.findOne({ boardName }).select('activityLogs')
             .populate('activityLogs.user', 'username')
