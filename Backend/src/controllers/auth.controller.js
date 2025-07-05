@@ -36,7 +36,7 @@ const registerUser = async (req, res, next) => {
         );
 
         res.cookie('accessToken', accessToken, {
-            maxAge: 3600000*24*7, // 1 hour in milliseconds
+            maxAge: 3600000 * 24 * 7, // 1 hour in milliseconds
             httpOnly: true,
             secure: true,
             sameSite: 'strict'
@@ -97,22 +97,53 @@ const logoutUser = async (req, res, next) => {
 
 const fetchAllUsers = async (req, res) => {
     try {
-        
-        const {boardName} = req.params;
-        console.log(boardName)
 
-        const board = await TodoBoard.findOne({boardName})
+        const { boardName } = req.params;
 
-        if(!board){
-            return res.status(404).json({success: true, message: "No such board found"})
+        const board = await TodoBoard.findOne({ boardName })
+
+        if (!board) {
+            return res.status(404).json({ success: true, message: "No such board found" })
         }
-        const users = await User.find({board: board._id})
+        const users = await User.find({ board: board._id })
 
-        return res.status(200).json({success: true, message: "Users fetched successfully", users})
+        return res.status(200).json({ success: true, message: "Users fetched successfully", users })
     } catch (error) {
         console.log("error fetching users: ", error)
-        return res.status(500).json({success: false, message: "Internal server Error"})
+        return res.status(500).json({ success: false, message: "Internal server Error" })
     }
 }
 
-export { registerUser, loginUser, logoutUser, fetchAllUsers };
+const getSmartUser = async (req, res) => {
+    try {
+        const users = await User.find()
+            .populate('assignedTasks');
+
+        if (!users || users.length === 0) {
+            throw new Error('No users found');
+        }
+
+        const userTaskCounts = users.map(user => {
+            const activeCount = user.assignedTasks.filter(task =>
+                task.status === 'todo' || task.status === 'in-progress'
+            ).length;
+
+            return {
+                userId: user._id,
+                activeCount,
+            };
+        });
+
+        userTaskCounts.sort((a, b) => a.activeCount - b.activeCount);
+
+
+        return res.status(200).json({success: true, message: "Smart user assigned", user: userTaskCounts[0].userId});
+
+
+    } catch (error) {
+        console.log("error in smat assign", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" })
+    }
+}
+
+export { registerUser, loginUser, logoutUser, fetchAllUsers, getSmartUser };

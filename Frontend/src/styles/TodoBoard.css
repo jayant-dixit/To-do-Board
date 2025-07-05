@@ -513,6 +513,24 @@ body {
 .form-row {
     display: flex;
     gap: 16px;
+    justify-content: center;
+    align-items: center;
+}
+
+.smart-assign{
+    background : rgb(40, 108, 255);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 12px 20px;
+    margin-top: 22px;
+    height: fit-content;
+}
+
+.smart-assign:hover{
+    background-color: blue;
 }
 
 .form-row .form-group {

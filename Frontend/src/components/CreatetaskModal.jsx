@@ -32,7 +32,7 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
                 status: formData.status
             })
 
-            if(response.data.success){
+            if (response.data.success) {
                 onClose();
             }
         } catch (error) {
@@ -40,6 +40,19 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
             console.log(error)
         }
     };
+
+    const handleSmartAssign = async (e)=> {
+        e.preventDefault()
+        try {
+            const response = await api.get('/api/auth/getsmartuser');
+
+            if(response.data.success){
+                setFormData({...formData, assignedUser: response?.data?.user})
+            }
+        } catch (error) {
+            console.log("Error in smart assign: ", error);
+        }
+    }
 
     useEffect(() => {
         async function fetchUsers() {
@@ -88,19 +101,22 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
                         />
                     </div>
 
+                    <div className='form-row'>
+                    <div className="form-group">
+                        <label htmlFor="assignedUser">Assigned User</label>
+                        <select
+                            id="assignedUser"
+                            value={formData.assignedUser}
+                            onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
+                        >
+                            {users.map((user, index) => (
+                                <option key={index} value={user._id}>{user.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <button onClick={handleSmartAssign} className='smart-assign'>Smart Assign</button>
+                    </div>
                     <div className="form-row">
-                        <div className="form-group">
-                            <label htmlFor="assignedUser">Assigned User</label>
-                            <select
-                                id="assignedUser"
-                                value={formData.assignedUser}
-                                onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
-                            >
-                                {users.map((user, index) => (
-                                    <option key={index} value={user._id}>{user.name}</option>
-                                ))}
-                            </select>
-                        </div>
 
                         <div className="form-group">
                             <label htmlFor="priority">Priority</label>
@@ -114,20 +130,20 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
                                 <option value="High">High Priority</option>
                             </select>
                         </div>
+                        <div className="form-group">
+                            <label htmlFor="status">Initial Status</label>
+                            <select
+                                id="status"
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            >
+                                <option value="todo">To Do</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="status">Initial Status</label>
-                        <select
-                            id="status"
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        >
-                            <option value="todo">To Do</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="done">Done</option>
-                        </select>
-                    </div>
                     {errorMessage && <p className='errorMessage'>{errorMessage}</p>}
 
                     <div className="form-actions">
