@@ -11,9 +11,9 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
   });
 
   const priorityColors = {
-    low: '#10B981',
-    medium: '#F59E0B',
-    high: '#EF4444'
+    Low: '#10B981',
+    Medium: '#F59E0B',
+    High: '#EF4444'
   };
 
   const handleEdit = () => {
@@ -41,14 +41,14 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
     <div 
       className="task-card"
       draggable
-      onDragStart={(e) => onDragStart(e, task.id)}
+      onDragStart={(e) => onDragStart(e, task._id)}
     >
       <div className="task-header">
         <div 
           className="priority-indicator"
           style={{ backgroundColor: priorityColors[task.priority] }}
         >
-          {task.priority.toUpperCase()}
+          {task.priority?.toUpperCase()}
         </div>
         <div className="task-actions">
           <button 
@@ -114,13 +114,13 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
           <div className="task-meta">
             <div className="assigned-user">
               <span className="user-icon">👤</span>
-              {task.assignedUser}
+              {task.assignedUser.name}
             </div>
             <div className="task-status">{task.status.replace('inprogress', 'In Progress')}</div>
           </div>
           <div className="task-timestamp">
             <span className="timestamp-icon">🕒</span>
-            <span className="timestamp-text">{formatTimestamp(task.timestamp || task.createdAt)}</span>
+            <span className="timestamp-text">{formatTimestamp(task.createdAt.split('T'))}</span>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import axios from "axios";
 import { MyContext } from "../App";
+import api from "../services/api";
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +39,7 @@ const Login = () => {
                 return;
             }
 
-            const response = await axios.post("http://localhost:3000/api/auth/login", {
+            const response = await api.post("/api/auth/login", {
                 username, 
                 password
             }, {
@@ -48,16 +49,18 @@ const Login = () => {
             })
 
             if(response.data.success){
+                localStorage.setItem("boardName", response?.data?.user.board.boardName)
+                localStorage.setItem("user", JSON.stringify(response?.data?.user))
                 setIsAuthenticated(true);
-                setBoardName(response.data.user.board)
-                setUser(response.data.user)
+                setBoardName(response?.data?.user?.board?.boardName)
+                setUser(response?.data?.user)
                 navigate("/todo")
             }
 
-            console.log(response.data)
+            console.log(response?.data)
 
         } catch (error) {
-            setErrorMessage(error.response.data.message);
+            setErrorMessage(error.response?.data.message);
             console.log(error)
         }
     }

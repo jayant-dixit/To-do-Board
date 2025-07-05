@@ -19,12 +19,13 @@ const createBoard = async (req, res) => {
 
 const fetchActivityLogs = async (req, res) => {
     try {
-        const { boardName } = req.body;
+        const { boardName } = req.params;
 
+        console.log(boardName)
         const board = await TodoBoard.findOne({ boardName }).select('activityLogs')
-            .populate('activityLogs.user', 'username')
+            .populate('activityLogs.user')
             .sort({ 'activityLogs.timestamp': -1 })
-            .limit(20);
+            console.log(board)
 
         return res.status(200).json({ success: true, activityLogs: board });
     } catch (error) {

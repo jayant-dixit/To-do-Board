@@ -17,7 +17,12 @@ await connectToDB(); // connect to MongoDB database
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type"],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

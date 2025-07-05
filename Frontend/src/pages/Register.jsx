@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../styles/Register.css";
 import axios from "axios";
 import { MyContext } from "../App";
+import api from "../services/api";
 
 const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +68,7 @@ const Register = () => {
         try {
             setErrorMessage(null);
 
-            const response = await axios.post("http://localhost:3000/api/auth/register", {
+            const response = await api.post("/api/auth/register", {
                 name: fullName,
                 username: username,
                 password: password,

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import TodoBoard from './pages/TodoBoard'
 import Home from './pages/Home'
@@ -12,6 +12,14 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [boardName, setBoardName] = useState(null)
   const [user, setUser] = useState(null)
+
+  useEffect(()=>{
+    let boardName = localStorage.getItem("boardName");
+    let user = localStorage.getItem("user");
+
+    setBoardName(boardName)
+    setUser(JSON.parse(user))
+  }, [])
 
   return (
     <MyContext.Provider value={{isAuthenticated, setIsAuthenticated, boardName, setBoardName, user, setUser}}>

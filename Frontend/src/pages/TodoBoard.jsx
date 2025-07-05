@@ -5,6 +5,7 @@ import CreateTaskModal from '../components/CreatetaskModal';
 import ActivityLog from '../components/ActivityLog';
 import TaskCard from '../components/TaskCard';
 import '../styles/TodoBoard.css';
+import api from '../services/api';
 
 const TodoBoard = () => {
     const [tasks, setTasks] = useState([]);
@@ -75,6 +76,27 @@ const TodoBoard = () => {
         updateTask(taskId, { status });
     };
 
+    useEffect(() => {
+
+        async function fetchTasks() {
+            try {
+                const response = await api.get("/api/task/gettasks");
+
+                if (response.data.success) {
+                    const existingTasks = response.data?.tasks;
+                    setTasks(existingTasks)
+                }
+
+                // console.log(response.data.tasks)
+
+            } catch (error) {
+                console.log(error.response);
+            }
+        }
+
+        fetchTasks()
+    }, [])
+
     return (
         <div className="todo-board">
             <header className="board-header">
@@ -108,9 +130,9 @@ const TodoBoard = () => {
                             <span className="task-count">{getTasksByStatus('todo').length}</span>
                         </div>
                         <div className="tasks-container">
-                            {getTasksByStatus('todo').map(task => (
+                            {tasks.filter((task) => task.status == "todo").map(task => (
                                 <TaskCard
-                                    key={task.id}
+                                    key={task._id}
                                     task={task}
                                     onUpdate={updateTask}
                                     onDelete={deleteTask}
@@ -130,9 +152,9 @@ const TodoBoard = () => {
                             <span className="task-count">{getTasksByStatus('inprogress').length}</span>
                         </div>
                         <div className="tasks-container">
-                            {getTasksByStatus('inprogress').map(task => (
+                            {tasks.filter((task) => task.status == "in-progress").map(task => (
                                 <TaskCard
-                                    key={task.id}
+                                    key={task._id}
                                     task={task}
                                     onUpdate={updateTask}
                                     onDelete={deleteTask}
@@ -152,9 +174,9 @@ const TodoBoard = () => {
                             <span className="task-count">{getTasksByStatus('done').length}</span>
                         </div>
                         <div className="tasks-container">
-                            {getTasksByStatus('done').map(task => (
+                            {tasks.filter((task) => task.status == "done").map(task => (
                                 <TaskCard
-                                    key={task.id}
+                                    key={task._id}
                                     task={task}
                                     onUpdate={updateTask}
                                     onDelete={deleteTask}

@@ -1,22 +1,60 @@
 
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import api from '../services/api';
+import { MyContext } from '../App';
 
 const CreateTaskModal = ({ onClose, onCreate }) => {
+    const [users, setUsers] = useState([])
+    const { boardName } = useContext(MyContext)
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         assignedUser: '',
-        priority: 'medium',
+        priority: 'Medium',
         status: 'todo'
     });
+    const [errorMessage, setErrorMessage] = useState(null)
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (formData.title.trim()) {
-            onCreate(formData);
-            onClose();
+        try {
+            if (formData.title.trim() === "") {
+                setErrorMessage("Title is required")
+                return;
+            }
+
+            const response = await api.post("/api/task/createtask", {
+                title: formData.title,
+                boardName,
+                description: formData.description,
+                assignedUser: formData.assignedUser,
+                priority: formData.priority,
+                status: formData.status
+            })
+
+            if(response.data.success){
+                onClose();
+            }
+        } catch (error) {
+            setErrorMessage(error?.response?.data?.message || error.response?.data.error)
+            console.log(error)
         }
     };
+
+    useEffect(() => {
+        async function fetchUsers() {
+            try {
+                const response = await api.get(`/api/auth/users/${boardName}`)
+
+                setUsers(response.data.users)
+                console.log(response.data)
+            } catch (error) {
+                console.log("Error fetching users: ", error)
+            }
+        }
+
+        fetchUsers();
+    }, [])
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -53,13 +91,22 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
                     <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="assignedUser">Assigned User</label>
-                            <input
+                            {/* <input
                                 type="text"
                                 id="assignedUser"
                                 value={formData.assignedUser}
                                 onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
                                 placeholder="Enter user name"
-                            />
+                            /> */}
+                            <select
+                                id="assignedUser"
+                                value={formData.assignedUser}
+                                onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
+                            >
+                                {users.map((user, index) => (
+                                    <option key={index} value={user._id}>{user.name}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div className="form-group">
@@ -69,9 +116,9 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
                                 value={formData.priority}
                                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                             >
-                                <option value="low">Low Priority</option>
-                                <option value="medium">Medium Priority</option>
-                                <option value="high">High Priority</option>
+                                <option value="Low">Low Priority</option>
+                                <option value="Medium">Medium Priority</option>
+                                <option value="High">High Priority</option>
                             </select>
                         </div>
                     </div>
@@ -84,10 +131,11 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
                             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                         >
                             <option value="todo">To Do</option>
-                            <option value="inprogress">In Progress</option>
+                            <option value="in-progress">In Progress</option>
                             <option value="done">Done</option>
                         </select>
                     </div>
+                    {errorMessage && <p className='errorMessage'>{errorMessage}</p>}
 
                     <div className="form-actions">
                         <button type="button" className="cancel-btn" onClick={onClose}>

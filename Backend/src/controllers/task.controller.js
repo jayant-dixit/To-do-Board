@@ -31,7 +31,7 @@ const createTask = async (req, res) => {
             assignedUser,
             createdBy: userId,
             status: status || 'todo',
-            priority: priority || 3,
+            priority: priority || "Medium",
         });
 
         await task.save();
@@ -53,7 +53,7 @@ const createTask = async (req, res) => {
 
 const getTasks = async (req, res) => {
     try {
-        const tasks = await Task.find().populate('assignedUser', 'createdBy');
+        const tasks = await Task.find().populate('assignedUser');
 
         if (!tasks || tasks.length === 0) {
             return res.status(404).json({ success: false, error: "No tasks found" });

@@ -5,6 +5,6 @@ import { createBoard, fetchActivityLogs } from "../controllers/board.controller.
 const router = Router();
 
 router.post("/createboard", createBoard);
-router.get("/activitylogs", fetchActivityLogs);
+router.get("/activitylogs/:boardName", fetchActivityLogs);
 
 export default router;

@@ -94,4 +94,25 @@ const logoutUser = async (req, res, next) => {
     }
 }
 
-export { registerUser, loginUser, logoutUser };
+
+const fetchAllUsers = async (req, res) => {
+    try {
+        
+        const {boardName} = req.params;
+        console.log(boardName)
+
+        const board = await TodoBoard.findOne({boardName})
+
+        if(!board){
+            return res.status(404).json({success: true, message: "No such board found"})
+        }
+        const users = await User.find({board: board._id})
+
+        return res.status(200).json({success: true, message: "Users fetched successfully", users})
+    } catch (error) {
+        console.log("error fetching users: ", error)
+        return res.status(500).json({success: false, message: "Internal server Error"})
+    }
+}
+
+export { registerUser, loginUser, logoutUser, fetchAllUsers };
