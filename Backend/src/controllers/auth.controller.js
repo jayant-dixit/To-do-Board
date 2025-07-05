@@ -29,6 +29,16 @@ const registerUser = async (req, res, next) => {
         board.users.push(user._id);
         await board.save();
 
+        const accessToken = jwt.sign(
+            { userId: user._id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '3h' }
+        );
+
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,                                                
+        });
+
         return res.status(201).json({ success: true, message: 'User registered successfully', user });
     } catch (error) {
         console.error('Error registering user:', error);
