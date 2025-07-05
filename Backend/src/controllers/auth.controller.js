@@ -11,7 +11,7 @@ const registerUser = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'All fields are required' });
         }
 
-        if( password.length < 6) {
+        if (password.length < 6) {
             return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long' });
         }
         // Check if the user already exists
@@ -21,11 +21,11 @@ const registerUser = async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        const board = await TodoBoard.findOne({ boardName });
 
-        const user = new User({ name, username, password: hashedPassword });
+        const user = new User({ name, username, password: hashedPassword, board: board._id });
         await user.save();
 
-        const board = await TodoBoard.findOne({ boardName });
         board.users.push(user._id);
         await board.save();
 
@@ -36,7 +36,10 @@ const registerUser = async (req, res, next) => {
         );
 
         res.cookie('accessToken', accessToken, {
-            httpOnly: true,                                                
+            maxAge: 3600000*24*7, // 1 hour in milliseconds
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict'
         });
 
         return res.status(201).json({ success: true, message: 'User registered successfully', user });
@@ -54,7 +57,7 @@ const loginUser = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'All fields are required' });
         }
 
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username }).populate("board");
         if (!user) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
@@ -71,7 +74,7 @@ const loginUser = async (req, res, next) => {
         );
 
         res.cookie('accessToken', accessToken, {
-            httpOnly: true,                                                
+            httpOnly: true,
         });
 
         return res.status(200).json({ success: true, message: 'Login successful', user });

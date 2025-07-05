@@ -11,11 +11,10 @@ const App = () => {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [boardName, setBoardName] = useState(null)
-  const [username, setUsername] = useState(null)
-  const [userId, setuserId] = useState(null)
+  const [user, setUser] = useState(null)
 
   return (
-    <MyContext.Provider value={{isAuthenticated, setIsAuthenticated, boardName, setBoardName, username, setUsername, userId, setuserId}}>
+    <MyContext.Provider value={{isAuthenticated, setIsAuthenticated, boardName, setBoardName, user, setUser}}>
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />

@@ -1,165 +1,209 @@
-
-import React, { useState, useEffect, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import '../styles/Auth.css';
-import axios from 'axios';
-import { MyContext } from '../App';
+import { AtSign, ClipboardList, Eye, EyeClosed, KeyRound, Mail, User } from "lucide-react"
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/Register.css";
+import axios from "axios";
+import { MyContext } from "../App";
 
 const Register = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        username: '',
-        password: '',
-        confirmPassword: ''
-    });
-    const [typedText, setTypedText] = useState('');
-    const [errorMessage, setErrorMessage] = useState('')
-    const fullText = 'Join Us Today!';
+    const [showPassword, setShowPassword] = useState(false);
 
-    const {setIsAuthenticated, setBoardName, setUsername, setuserId} = useContext(MyContext)
+    const {setIsAuthenticated, setBoardName: setGlobalBoard, setUser } = useContext(MyContext)
 
-    const boardName = import.meta.env.VITE_BOARD_NAME;
+    const [fullName, setFullName] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [boardName, setBoardName] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [terms, setTerms] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        let currentIndex = 0;
-        const typingInterval = setInterval(() => {
-            if (currentIndex <= fullText.length) {
-                setTypedText(fullText.slice(0, currentIndex));
-                currentIndex++;
-            } else {
-                clearInterval(typingInterval);
-            }
-        }, 100);
+    const [errorMessage, setErrorMessage] = useState(null);
 
-        return () => clearInterval(typingInterval);
-    }, []);
+    const handleChange = (e) => {
+        const { name, value, checked } = e.target;
 
-    const handleInputChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
+        switch (name) {
+            case "fullName":
+                setFullName(value);
+                break;
+            case "username":
+                setUsername(value);
+                break;
+            case "password":
+                setPassword(value);
+                break;
+            case "confirmPassword":
+                setConfirmPassword(value);
+                break;
+            case "terms":
+                setTerms(checked);
+                break;
+            case "boardName":
+                setBoardName(value);
+                break;
+        }
+    }
 
-    const handleSubmit = async (e) => {
+    const registerUser = async (e) => {
         e.preventDefault();
+        const passwordRegEx = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/
+
+        if (fullName.trim() === "" || username.trim() === "" || password.trim() === "" || confirmPassword.trim() === "" || boardName.trim() === "") {
+            setErrorMessage("Please fill in all fields.");
+            return;
+        }
+
+        if (!passwordRegEx.test(password)) {
+            setErrorMessage("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setErrorMessage("Password and confirm password do not match.");
+            return;
+        }
+
         try {
-            if(!formData.name || !formData.username){
-                setErrorMessage('All Fields are mandatory!');
-                return;
-            }
-    
-            if(formData.password.length < 6){
-                setErrorMessage("Password must be atleast 6 character long!");
-                return;
-            }
-    
-            if (formData.password !== formData.confirmPassword) {
-                setErrorMessage('Passwords do not match!');
-                return;
-            }
-    
+            setErrorMessage(null);
+
             const response = await axios.post("http://localhost:3000/api/auth/register", {
-                name: formData.name,
-                username: formData.username,
-                password: formData.password,
+                name: fullName,
+                username: username,
+                password: password,
                 boardName
             })
 
-            if(response.data.success){
+            if (response.data.success) {
                 setIsAuthenticated(true);
-                setBoardName(boardName);
-                setUsername(response.data.user.username)
-                setuserId(response.data.user._id);
+                setGlobalBoard(boardName);
+                setUser(response.data.user);
                 navigate("/todo")
             }
 
             console.log(response.data)
         } catch (error) {
             setErrorMessage(error.response.data.message);
+            console.log(error)
             return;
+        } finally {
+            setFullName("");
+            setUsername("");
+            setPassword("");
+            setConfirmPassword("");
+            setTerms(false);
+            setBoardName("");
         }
 
-
-
-
-    };
+    }
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <h1 className="typing-text">{typedText}<span className="cursor">|</span></h1>
-                    <p className="auth-subtitle">Create your new account</p>
+        <div className="signup-container">
+            <div className="signup-card">
+                {/* Left: Sign-up Form */}
+                <div className="form-section">
+                    <h2 className="form-title">Join Us Today!</h2>
+                    <p className="form-subtitle">Create an account to get started</p>
+
+                    <form className="signup-form" onSubmit={registerUser}>
+                        <div className="input-container">
+                            <User className="input-icon-user" fill="black" />
+                            <input
+                                type="text"
+                                name="fullName"
+                                value={fullName}
+                                onChange={handleChange}
+                                required
+                                placeholder="Your Name"
+                                className="form-input"
+                            />
+                        </div>
+
+                        <div className="input-container">
+                            <AtSign className="input-icon" />
+                            <input
+                                type="text"
+                                name="username"
+                                value={username}
+                                onChange={handleChange}
+                                required
+                                placeholder="Your Username"
+                                className="form-input"
+                            />
+                        </div>
+
+                        <div className="input-container">
+                            <KeyRound className="input-icon-password" color="white" fill="black" />
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Password"
+                                required
+                                onChange={handleChange}
+                                value={password}
+                                className="form-input"
+                            />
+                            {showPassword ? (
+                                <Eye className="eye-icon" onClick={() => setShowPassword(false)} />
+                            ) : (
+                                <EyeClosed className="eye-icon" onClick={() => setShowPassword(true)} />
+                            )}
+                        </div>
+
+                        <div className="input-container">
+                            <KeyRound className="input-icon-confirm" />
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                required
+                                onChange={handleChange}
+                                value={confirmPassword}
+                                placeholder="Confirm password"
+                                className="form-input"
+                            />
+                        </div>
+
+                        <div className="input-container">
+                            <ClipboardList className="input-icon-user"/>
+                            <input
+                                type="text"
+                                name="boardName"
+                                value={boardName}
+                                onChange={handleChange}
+                                required
+                                placeholder="Board Name you want to join"
+                                className="form-input"
+                            />
+                        </div>
+                        <div className="checkbox-container">
+                            <input type="checkbox" name="terms" id="terms" checked={terms}
+                                onChange={handleChange} required className="checkbox-input" />
+                            <label htmlFor="terms" className="checkbox-label">
+                                I agree to all statements in <a href="#" className="terms-link">Terms of service</a>
+                            </label>
+                        </div>
+
+
+                        {errorMessage && <p className="error-message">{errorMessage}</p>}
+
+                        <button type="submit" className="submit-button">
+                            Register
+                        </button>
+
+                    </form>
+
+                    <p className="signin-link-text">
+                        I am already a member? <Link to={"/login"} className="signin-link">Sign in</Link>
+                    </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    <div className="input-group">
-                        <label htmlFor="name">Full Name</label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            placeholder="Enter your full name"
-                            required
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <label htmlFor="username">Username</label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleInputChange}
-                            placeholder="Enter your username"
-                            required
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            placeholder="Create a password"
-                            required
-                        />
-                    </div>
-
-                    <div className="input-group">
-                        <label htmlFor="confirmPassword">Confirm Password</label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleInputChange}
-                            placeholder="Confirm your password"
-                            required
-                        />
-                    </div>
-                    {errorMessage && <p className='errormessage'>{errorMessage}</p>}
-
-                    <button type="submit" className="auth-button">
-                        Create Account
-                    </button>
-                </form>
-
-                <div className="auth-links">
-                    <p>Already have an account? <Link to="/login" className="link">Sign in</Link></p>
-                    <Link to="/" className="link">← Back to Home</Link>
+                {/* Right: Image Section */}
+                <div className="image-section">
+                    <img src="./signup_hero_image.svg" loading="lazy" alt="Signup Illustration" className="hero-image" />
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default Register;
+export default Register

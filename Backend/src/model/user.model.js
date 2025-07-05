@@ -11,6 +11,11 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    board: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TodoBoard',
+        required: true
+    },
     password: {
         type: String,
         required: true,

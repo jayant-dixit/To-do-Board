@@ -1,31 +1,36 @@
-
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import '../styles/Auth.css';
-import axios from 'axios';
+import { Eye, EyeClosed, KeyRound, User2 } from "lucide-react"
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/Login.css";
+import axios from "axios";
+import { MyContext } from "../App";
 
 const Login = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [typedText, setTypedText] = useState('');
-    const [errorMessage, setErrorMessage] = useState("")
-    const fullText = 'Welcome Back!';
+    const [showPassword, setShowPassword] = useState(false);
 
-    useEffect(() => {
-        let currentIndex = 0;
-        const typingInterval = setInterval(() => {
-            if (currentIndex <= fullText.length) {
-                setTypedText(fullText.slice(0, currentIndex));
-                currentIndex++;
-            } else {
-                clearInterval(typingInterval);
-            }
-        }, 100);
+    const [username, setUsername] = useState("")
+    const [password, setPassword] = useState("");
 
-        return () => clearInterval(typingInterval);
-    }, []);
+    const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const { setIsAuthenticated, setBoardName, setUser } = useContext(MyContext)
+
+    const [errorMessage, setErrorMessage] = useState(null);
+
+    const handleChange = (e) => {
+        const { name, value, checked } = e.target;
+
+        switch (name) {
+            case "username":
+                setUsername(value);
+                break;
+            case "password":
+                setPassword(value);
+                break;
+        }
+    }
+
+    const loginUser = async (e) => {
         e.preventDefault();
         try {
             if(!username || !password){
@@ -36,7 +41,18 @@ const Login = () => {
             const response = await axios.post("http://localhost:3000/api/auth/login", {
                 username, 
                 password
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             })
+
+            if(response.data.success){
+                setIsAuthenticated(true);
+                setBoardName(response.data.user.board)
+                setUser(response.data.user)
+                navigate("/todo")
+            }
 
             console.log(response.data)
 
@@ -44,54 +60,70 @@ const Login = () => {
             setErrorMessage(error.response.data.message);
             console.log(error)
         }
-    };
+    }
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <h1 className="typing-text">{typedText}<span className="cursor">|</span></h1>
-                    <p className="auth-subtitle">Sign in to your account</p>
+        <div className="signin-container">
+            <div className="signin-card">
+                {/* Left: Image Section */}
+                <div className="image-section">
+                    <img src="./signin_hero_image.svg" loading="lazy" alt="SignIn Illustration" className="hero-image" />
                 </div>
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    <div className="input-group">
-                        <label htmlFor="username">Username</label>
-                        <input
-                            type="text"
-                            id="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Enter your username"
-                            required
-                        />
-                    </div>
+                {/* Right: Sign-up Form */}
+                <div className="form-section">
+                    <h2 className="form-title">Welcome Back!</h2>
+                    <p className="form-subtitle">Login to continue your journey </p>
 
-                    <div className="input-group">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
-                            required
-                        />
-                    </div>
-                    {errorMessage && <p className='errormessage'>{errorMessage}</p>}
+                    <form className="signin-form" onSubmit={loginUser}>
+                        <div className="input-container">
+                            <User2 className="input-icon" fill="black" color="white" />
+                            <input
+                                type="text"
+                                name="username"
+                                value={username}
+                                onChange={handleChange}
+                                required
+                                placeholder="Your Username"
+                                className="form-input"
+                            />
+                        </div>
 
-                    <button type="submit" className="auth-button">
-                        Sign In
-                    </button>
-                </form>
+                        <div className="input-container">
+                            <KeyRound className="input-icon-password" color="white" fill="black" />
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Password"
+                                required
+                                onChange={handleChange}
+                                value={password}
+                                className="form-input"
+                            />
+                            {showPassword ? (
+                                <Eye className="eye-icon" onClick={() => setShowPassword(false)} />
+                            ) : (
+                                <EyeClosed className="eye-icon" onClick={() => setShowPassword(true)} />
+                            )}
+                        </div>
 
-                <div className="auth-links">
-                    <p>Don't have an account? <Link to="/register" className="link">Sign up</Link></p>
-                    <Link to="/" className="link">← Back to Home</Link>
+                        {errorMessage && <p className="error-message">{errorMessage}</p>}
+
+
+                        <button type="submit" className="submit-button">
+                            Login
+                        </button>
+
+                    </form>
+
+                    <p className="signup-link-text">
+                        New here? <Link to={"/register"} className="signup-link">Create an account</Link>
+                    </p>
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default Login;
+export default Login
+
