@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import UserMenu from '../components/UserMenu';
 import CreateTaskModal from '../components/CreatetaskModal';
 import ActivityLog from '../components/ActivityLog';
 import TaskCard from '../components/TaskCard';
 import '../styles/TodoBoard.css';
 import api from '../services/api';
+import { MyContext } from '../App';
 
 const TodoBoard = () => {
     const [tasks, setTasks] = useState([]);
@@ -13,6 +14,8 @@ const TodoBoard = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
     const [currentUser] = useState('John Doe'); // Mock current user
+    const { boardName } = useContext(MyContext)
+
 
     const addActivity = (message, type) => {
         const newActivity = {
@@ -35,26 +38,39 @@ const TodoBoard = () => {
         addActivity(`Created task: ${newTask.title}`, 'create');
     };
 
-    const updateTask = (id, updates) => {
+    const updateTask = async (title, updates) => {
+        try {
+            const response = await api.put("/api/task/edittask", {...updates, title, boardName});
+
+            // console.log(response)
+        } catch (error) {
+            console.log("Eror while editing: ", error)
+        }
         setTasks(prev => prev.map(task => {
-            if (task.id === id) {
+            if (task.title === title) {
                 const updatedTask = { ...task, ...updates, timestamp: new Date() };
-                if (updates.status && updates.status !== task.status) {
-                    addActivity(`Moved "${task.title}" to ${updates.status}`, 'move');
-                } else {
-                    addActivity(`Updated task: ${task.title}`, 'update');
-                }
                 return updatedTask;
             }
             return task;
         }));
     };
 
-    const deleteTask = (id) => {
-        const task = tasks.find(t => t.id === id);
+    const deleteTask = async (title) => {
+        const task = tasks.find(t => t.title === title);
         if (task) {
-            setTasks(prev => prev.filter(t => t.id !== id));
-            addActivity(`Deleted task: ${task.title}`, 'delete');
+            setTasks(prev => prev.filter(t => t.title !== title));
+        }
+        try {
+            const response = await api.delete(`/api/task/deletetask?title${title}&boardName=${boardName}`)
+
+            if (response.data.success) {
+                const task = tasks.find(t => t.title === title);
+                if (task) {
+                    setTasks(prev => prev.filter(t => t.title !== title));
+                }
+            }
+        } catch (error) {
+            console.log("error while deleting task: ", error);
         }
     };
 
@@ -62,8 +78,8 @@ const TodoBoard = () => {
         return tasks.filter(task => task.status === status);
     };
 
-    const handleDragStart = (e, taskId) => {
-        e.dataTransfer.setData('text/plain', taskId);
+    const handleDragStart = (e, title) => {
+        e.dataTransfer.setData('text/plain', title);
     };
 
     const handleDragOver = (e) => {
@@ -72,8 +88,8 @@ const TodoBoard = () => {
 
     const handleDrop = (e, status) => {
         e.preventDefault();
-        const taskId = e.dataTransfer.getData('text/plain');
-        updateTask(taskId, { status });
+        const title = e.dataTransfer.getData('text/plain');
+        updateTask(title, { status });
     };
 
     useEffect(() => {
@@ -106,7 +122,7 @@ const TodoBoard = () => {
                         className="activity-log-btn"
                         onClick={() => setIsActivityLogOpen(!isActivityLogOpen)}
                     >
-                        📊 Activity Log ({activities.length})
+                        📊 Activity Log
                     </button>
                     <button
                         className="create-task-btn"
@@ -145,11 +161,11 @@ const TodoBoard = () => {
                     <div
                         className="column inprogress-column"
                         onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, 'inprogress')}
+                        onDrop={(e) => handleDrop(e, 'in-progress')}
                     >
                         <div className="column-header">
                             <h2>In Progress</h2>
-                            <span className="task-count">{getTasksByStatus('inprogress').length}</span>
+                            <span className="task-count">{getTasksByStatus('in-progress').length}</span>
                         </div>
                         <div className="tasks-container">
                             {tasks.filter((task) => task.status == "in-progress").map(task => (

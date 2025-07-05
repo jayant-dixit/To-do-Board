@@ -1,8 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import api from '../services/api';
+import { MyContext } from '../App';
 
 const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [users, setUsers] = useState([])
+  const {boardName} = useContext(MyContext)
   const [editData, setEditData] = useState({
     title: task.title,
     description: task.description,
@@ -18,7 +22,7 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
 
   const handleEdit = () => {
     if (isEditing) {
-      onUpdate(task.id, editData);
+      onUpdate(task.title, editData);
     }
     setIsEditing(!isEditing);
   };
@@ -37,37 +41,52 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
     return date.toLocaleString();
   };
 
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const response = await api.get(`/api/auth/users/${boardName}`)
+
+        setUsers(response.data.users)
+        console.log(response.data)
+      } catch (error) {
+        console.log("Error fetching users: ", error)
+      }
+    }
+
+    fetchUsers();
+  }, [])
+
   return (
-    <div 
+    <div
       className="task-card"
       draggable
-      onDragStart={(e) => onDragStart(e, task._id)}
+      onDragStart={(e) => onDragStart(e, task.title)}
     >
       <div className="task-header">
-        <div 
+        <div
           className="priority-indicator"
           style={{ backgroundColor: priorityColors[task.priority] }}
         >
           {task.priority?.toUpperCase()}
         </div>
         <div className="task-actions">
-          <button 
+          <button
             className="edit-btn"
             onClick={handleEdit}
           >
             {isEditing ? '✓' : '✏️'}
           </button>
           {isEditing && (
-            <button 
+            <button
               className="cancel-btn"
               onClick={handleCancel}
             >
               ✕
             </button>
           )}
-          <button 
+          <button
             className="delete-btn"
-            onClick={() => onDelete(task.id)}
+            onClick={() => onDelete(task.title)}
           >
             🗑️
           </button>
@@ -79,32 +98,44 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
           <input
             type="text"
             value={editData.title}
-            onChange={(e) => setEditData({...editData, title: e.target.value})}
+            disabled
+            onChange={(e) => setEditData({ ...editData, title: e.target.value })}
             className="edit-title"
             placeholder="Task title"
           />
           <textarea
             value={editData.description}
-            onChange={(e) => setEditData({...editData, description: e.target.value})}
+            onChange={(e) => setEditData({ ...editData, description: e.target.value })}
             className="edit-description"
             placeholder="Task description"
             rows={3}
           />
-          <input
-            type="text"
+          <select
+            id="assignedUser"
             value={editData.assignedUser}
-            onChange={(e) => setEditData({...editData, assignedUser: e.target.value})}
+            onChange={(e) => setEditData({ ...editData, assignedUser: e.target.value })}
             className="edit-user"
             placeholder="Assigned user"
-          />
+          >
+            {users.map((user, index) => (
+              <option key={index} value={user._id}>{user.name}</option>
+            ))}
+          </select>
+          {/* <input
+            type="text"
+            value={editData.assignedUser}
+            onChange={(e) => setEditData({ ...editData, assignedUser: e.target.value })}
+            className="edit-user"
+            placeholder="Assigned user"
+          /> */}
           <select
             value={editData.priority}
-            onChange={(e) => setEditData({...editData, priority: e.target.value})}
+            onChange={(e) => setEditData({ ...editData, priority: e.target.value })}
             className="edit-priority"
           >
-            <option value="low">Low Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="high">High Priority</option>
+            <option value="Low">Low Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="High">High Priority</option>
           </select>
         </div>
       ) : (

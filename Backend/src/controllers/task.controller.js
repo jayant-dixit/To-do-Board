@@ -120,7 +120,7 @@ const editTask = async (req, res) => {
 
 const deleteTask = async (req, res) => {
     try {
-        const {title, boardName} = req.body;
+        const {title, boardName} = req.query;
 
         const task = await Task.deleteOne({title});
         if (!task) {

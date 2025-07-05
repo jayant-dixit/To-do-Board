@@ -91,13 +91,6 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
                     <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="assignedUser">Assigned User</label>
-                            {/* <input
-                                type="text"
-                                id="assignedUser"
-                                value={formData.assignedUser}
-                                onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
-                                placeholder="Enter user name"
-                            /> */}
                             <select
                                 id="assignedUser"
                                 value={formData.assignedUser}
