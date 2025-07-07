@@ -7,40 +7,22 @@ import TaskCard from '../components/TaskCard';
 import '../styles/TodoBoard.css';
 import api from '../services/api';
 import { MyContext } from '../App';
+import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 
 const TodoBoard = () => {
+    const socket = io(import.meta.env.VITE_BACKEND_URL);
     const [tasks, setTasks] = useState([]);
-    const [activities, setActivities] = useState([]);
+    const [activityLogs, setActivityLogs] = useState([]);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
-    const [currentUser] = useState('John Doe'); // Mock current user
     const { boardName } = useContext(MyContext)
+    const navigate = useNavigate();
 
-
-    const addActivity = (message, type) => {
-        const newActivity = {
-            id: Date.now().toString(),
-            message,
-            timestamp: new Date(),
-            type
-        };
-        setActivities(prev => [newActivity, ...prev]);
-    };
-
-    const createTask = (taskData) => {
-        const newTask = {
-            ...taskData,
-            id: Date.now().toString(),
-            createdAt: new Date(),
-            timestamp: new Date()
-        };
-        setTasks(prev => [...prev, newTask]);
-        addActivity(`Created task: ${newTask.title}`, 'create');
-    };
 
     const updateTask = async (title, updates) => {
         try {
-            const response = await api.put("/api/task/edittask", {...updates, title, boardName});
+            const response = await api.put("/api/task/edittask", { ...updates, title, boardName });
 
             // console.log(response)
         } catch (error) {
@@ -61,7 +43,7 @@ const TodoBoard = () => {
             setTasks(prev => prev.filter(t => t.title !== title));
         }
         try {
-            const response = await api.delete(`/api/task/deletetask?title${title}&boardName=${boardName}`)
+            const response = await api.delete(`/api/task/deletetask?title=${title}&boardName=${boardName}`)
 
             if (response.data.success) {
                 const task = tasks.find(t => t.title === title);
@@ -92,6 +74,28 @@ const TodoBoard = () => {
         updateTask(title, { status });
     };
 
+    socket.on('newTask', (task) => {
+        // console.log("New task received from socket:", task);
+        setTasks(prev => [...prev, task]);
+    });
+
+    socket.on('updateTask', (task)=> {
+        console.log("Task updated from socket:", task);
+        const updatedTask = tasks.map(t => t._id === task._id ? task : t);
+        console.log(updateTask)
+        setTasks(prev => prev.map(t => t._id === task._id ? task : t));
+    });
+
+    socket.on('deleteTask', (title) => {
+        console.log("Task deleted from socket:", title);
+        setTasks(prev => prev.filter(t => t.title !== title));
+    });
+
+    socket.on('newActivityLog', (activity) => {
+        console.log("New activity log received from todo board:", activity)
+        setActivityLogs(prev => [activity, ...prev])
+    })
+
     useEffect(() => {
 
         async function fetchTasks() {
@@ -111,12 +115,32 @@ const TodoBoard = () => {
         }
 
         fetchTasks()
+
+        async function fetchLogs(board_name) {
+            try {
+                const response = await api.get(`/api/board/activitylogs/${board_name}`)
+
+                setActivityLogs([...response.data.activityLogs])
+            } catch (error) {
+                console.log("Error fetching logs: ", error)
+            }
+        }
+
+        if(boardName == null) {
+            const boardName = localStorage.getItem("boardName");
+            fetchLogs(boardName);
+            socket.emit('joinBoard', boardName);
+        } else {
+            fetchLogs(boardName);
+            socket.emit('joinBoard', boardName);
+        }
+
     }, [])
 
     return (
         <div className="todo-board">
             <header className="board-header">
-                <h1 className="board-title">Todo Board</h1>
+                <h1 onClick={() => navigate("/")} className="board-title">Todo Board</h1>
                 <div className="header-actions">
                     <button
                         className="activity-log-btn"
@@ -130,7 +154,7 @@ const TodoBoard = () => {
                     >
                         + Create New Task
                     </button>
-                    <UserMenu currentUser={currentUser} />
+                    <UserMenu />
                 </div>
             </header>
 
@@ -205,8 +229,9 @@ const TodoBoard = () => {
 
                 {isActivityLogOpen && (
                     <ActivityLog
-                        activities={activities}
+                        activityLogs={activityLogs}
                         onClose={() => setIsActivityLogOpen(false)}
+                        socket={socket}
                     />
                 )}
             </div>
@@ -214,7 +239,6 @@ const TodoBoard = () => {
             {isCreateModalOpen && (
                 <CreateTaskModal
                     onClose={() => setIsCreateModalOpen(false)}
-                    onCreate={createTask}
                 />
             )}
         </div>

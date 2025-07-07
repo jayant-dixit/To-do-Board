@@ -21,13 +21,12 @@ const fetchActivityLogs = async (req, res) => {
     try {
         const { boardName } = req.params;
 
-        console.log(boardName)
-        const board = await TodoBoard.findOne({ boardName }).select('activityLogs')
+        const board = await TodoBoard.findOne({ boardName })
+            .select('activityLogs')
             .populate('activityLogs.user')
             .sort({ 'activityLogs.timestamp': -1 })
-            console.log(board)
 
-        return res.status(200).json({ success: true, activityLogs: board });
+        return res.status(200).json({ success: true, activityLogs: board.activityLogs.reverse().slice(0, 20) });
     } catch (error) {
         console.error("Error fetching activity logs:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });

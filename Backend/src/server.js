@@ -8,6 +8,7 @@ import boardRouter from './routes/board.routes.js';
 import isAuthenticated from './utils/isAuthenticated.js';
 import taskRouter from './routes/task.routes.js';
 import cookieParser from 'cookie-parser';
+import { Server } from 'socket.io'
 
 dotenv.config();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,25 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const io = new Server(server, {
+    cors: { origin: '*' }
+})
+
+app.locals.io = io
+
+io.on('connection', (socket) => {
+    // console.log('User connected:', socket.id);
+
+    socket.on('joinBoard', (boardName) => {
+        console.log(`Socket ${socket.id} joining board: ${boardName}`);
+        socket.join(boardName);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
 
 app.get('/', (req, res) => {
     return res.send('Welcome to the Express server!');

@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import api from '../services/api';
 import { MyContext } from '../App';
 
-const CreateTaskModal = ({ onClose, onCreate }) => {
+const CreateTaskModal = ({ onClose }) => {
     const [users, setUsers] = useState([])
     const { boardName } = useContext(MyContext)
     const [formData, setFormData] = useState({
@@ -109,6 +109,7 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
                             value={formData.assignedUser}
                             onChange={(e) => setFormData({ ...formData, assignedUser: e.target.value })}
                         >
+                            <option value="">Select</option>
                             {users.map((user, index) => (
                                 <option key={index} value={user._id}>{user.name}</option>
                             ))}

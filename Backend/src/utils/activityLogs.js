@@ -2,7 +2,7 @@ import TodoBoard from "../model/todoBoard.model.js";
 
 const addNewActivityLog = async (activity) => {
     try {
-        const { boardName, userId, action } = activity;
+        const { boardName, userId, action, io } = activity;
 
         if (!boardName || !userId || !action) {
             throw new Error("Board name, user ID, and action are required to add an activity log.");
@@ -21,6 +21,8 @@ const addNewActivityLog = async (activity) => {
         board.activityLogs.push(newLog);
 
         await board.save();
+
+        io.to(boardName).emit('newActivityLog', newLog)
         console.log("Activity log added successfully:", newLog);
     } catch (error) {
         console.error("Error adding activity log:", error);

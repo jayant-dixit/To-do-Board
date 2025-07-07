@@ -6,7 +6,7 @@ import { MyContext } from '../App';
 const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [users, setUsers] = useState([])
-  const {boardName} = useContext(MyContext)
+  const { boardName } = useContext(MyContext)
   const [editData, setEditData] = useState({
     title: task.title,
     description: task.description,
@@ -37,8 +37,10 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
     setIsEditing(false);
   };
 
-  const formatTimestamp = (date) => {
-    return date.toLocaleString();
+  const formatTime = (date) => {
+
+    const nd = new Date(date)
+    return nd.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }, { hour: '2-digit', minute: '2-digit' });
   };
 
   useEffect(() => {
@@ -121,13 +123,6 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
               <option key={index} value={user._id}>{user.name}</option>
             ))}
           </select>
-          {/* <input
-            type="text"
-            value={editData.assignedUser}
-            onChange={(e) => setEditData({ ...editData, assignedUser: e.target.value })}
-            className="edit-user"
-            placeholder="Assigned user"
-          /> */}
           <select
             value={editData.priority}
             onChange={(e) => setEditData({ ...editData, priority: e.target.value })}
@@ -151,7 +146,7 @@ const TaskCard = ({ task, onUpdate, onDelete, onDragStart }) => {
           </div>
           <div className="task-timestamp">
             <span className="timestamp-icon">🕒</span>
-            <span className="timestamp-text">{formatTimestamp(task.createdAt.split('T'))}</span>
+            <span className="timestamp-text">{formatTime(task.createdAt)}</span>
           </div>
         </div>
       )}

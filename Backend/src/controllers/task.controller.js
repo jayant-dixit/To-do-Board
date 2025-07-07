@@ -6,6 +6,8 @@ const createTask = async (req, res) => {
     try {
         const { title, description, assignedUser, status, priority, boardName } = req.body;
 
+        const io = req.app.locals.io
+
         const {userId, username} = req.user;
         if (!userId) {
             return res.status(400).json({ success: false, error: "User ID is required" });
@@ -36,6 +38,8 @@ const createTask = async (req, res) => {
 
         await task.save();
 
+        task.populate('assignedUser');
+
         user.assignedTasks.push(task._id);
         await user.save();
 
@@ -43,7 +47,10 @@ const createTask = async (req, res) => {
             boardName,
             userId,
             action: `Task "${title}" created by user @${username}`,
+            io
         });
+
+        io.to(boardName).emit('newTask', task);
         return res.status(201).json({ success: true, task });
     } catch (error) {
         console.log("Error creating task:", error);
@@ -70,6 +77,7 @@ const editTask = async (req, res) => {
     try {
         const { title, status, description, assignedUser, priority, boardName } = req.body;
 
+        const io = req.app.locals.io
         const {userId, username} = req.user;
         if (!userId) {
             return res.status(400).json({ success: false, error: "User ID is required" });
@@ -106,11 +114,16 @@ const editTask = async (req, res) => {
 
         await task.save();
 
+        task.populate('assignedUser');
+
         await addNewActivityLog({
             boardName,
             userId,
             action: `Task "${title}" edited by user @${username}`,
+            io
         });
+
+        io.to(boardName).emit('updateTask', task)
         return res.status(200).json({ success: true, task });
     } catch (error) {
         console.log("Error editing task:", error);
@@ -122,6 +135,8 @@ const deleteTask = async (req, res) => {
     try {
         const {title, boardName} = req.query;
 
+        console.log("Deleting task with title:", title);
+        const io = req.app.locals.io
         const task = await Task.deleteOne({title});
         if (!task) {
             return res.status(404).json({ success: false, error: "Task not found" });
@@ -144,7 +159,10 @@ const deleteTask = async (req, res) => {
             boardName,
             userId,
             action: `Task "${title}" deleted by user @${username}`,
+            io
         });
+
+        io.to(boardName).emit("deleteTask", title);
         return res.status(200).json({ success: true, message: "Task deleted successfully" });
     } catch (error) {
         console.log("Error deleting task:", error);
