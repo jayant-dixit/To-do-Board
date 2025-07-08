@@ -16,6 +16,58 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.conflict-header p{
+    margin: 0;
+    font-size: 1rem;
+    color: #666;
+}
+
+.conflict-header {
+    display: flex;
+    flex-direction: column;
+    /* justify-content: space-between; */
+    align-items: center;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 16px;
+}
+
+.conflict-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5rem;
+}
+
+.conflict-message {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+.conflict-actions{
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.conflict-action-btn{
+    color: #3498db;
+    background: transparent;
+    border: 2px solid #3498db;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.conflict-action-btn:hover {
+    background: #3498db;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
 .board-header {
     display: flex;
     justify-content: space-between;

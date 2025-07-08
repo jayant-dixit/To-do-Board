@@ -19,12 +19,22 @@ const TodoBoard = () => {
     const { boardName } = useContext(MyContext)
     const navigate = useNavigate();
 
+    const [isConflict, setIsConflict] = useState(false);
+    const [isMerge, setIsMerge] = useState(false);
+    const [isOverwrite, setIsOverwrite] = useState(false);
+    const [existingData, setExistingData] = useState(null);
+    const [update, setUpdate] = useState(null);
 
     const updateTask = async (title, updates) => {
         try {
-            const response = await api.put("/api/task/edittask", { ...updates, title, boardName });
+            const response = await api.put("/api/task/edittask", { ...updates, title, boardName, lastUpdated: new Date(Date.now()), isMerge, isOverwrite });
 
-            // console.log(response)
+            if (response.data.conflict) {
+                setIsConflict(true);
+                setUpdate(updates);
+                setExistingData(response.data.task);
+                return;
+            }
         } catch (error) {
             console.log("Eror while editing: ", error)
         }
@@ -79,7 +89,7 @@ const TodoBoard = () => {
         setTasks(prev => [...prev, task]);
     });
 
-    socket.on('updateTask', (task)=> {
+    socket.on('updateTask', (task) => {
         console.log("Task updated from socket:", task);
         const updatedTask = tasks.map(t => t._id === task._id ? task : t);
         console.log(updateTask)
@@ -126,7 +136,7 @@ const TodoBoard = () => {
             }
         }
 
-        if(boardName == null) {
+        if (boardName == null) {
             const boardName = localStorage.getItem("boardName");
             fetchLogs(boardName);
             socket.emit('joinBoard', boardName);
@@ -240,6 +250,47 @@ const TodoBoard = () => {
                 <CreateTaskModal
                     onClose={() => setIsCreateModalOpen(false)}
                 />
+            )}
+
+            {isConflict && (
+                <div className="modal-overlay">
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="conflict-header">
+                            <h2>Conflict Detected</h2>
+                            <p>This Task Was Updated by Another User</p>
+                        </div>
+                        <TaskCard
+                            task={existingData}
+                            onUpdate={updateTask}
+                            onDelete={deleteTask}
+                            onDragStart={handleDragStart}
+                        />
+
+                        <p className='conflict-message'>What would you like to do?</p>
+                        <div className="conflict-actions">
+                            <button
+                                className="conflict-action-btn"
+                                onClick={() => {
+                                    setIsConflict(false);
+                                    setIsMerge(true);
+                                    updateTask(existingData.title, update);
+                                }}
+                            >
+                                Merge
+                            </button>
+                            <button
+                                className="conflict-action-btn"
+                                onClick={() => {
+                                    setIsConflict(false);
+                                    setIsOverwrite(true);
+                                    updateTask(existingData.title, update)
+                                }}
+                            >
+                                Overwrite
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

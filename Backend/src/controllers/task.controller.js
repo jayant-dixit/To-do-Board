@@ -1,6 +1,7 @@
 import Task from "../model/task.model.js";
 import User from "../model/user.model.js";
 import { addNewActivityLog } from "../utils/activityLogs.js";
+import resolveConflict from "../utils/resolveConflict.js";
 
 const createTask = async (req, res) => {
     try {
@@ -75,16 +76,24 @@ const getTasks = async (req, res) => {
 
 const editTask = async (req, res) => {
     try {
-        const { title, status, description, assignedUser, priority, boardName } = req.body;
+        const { title, status, description, assignedUser, priority, boardName, lastUpdated, isMerge, isOverwrite } = req.body;
 
         const io = req.app.locals.io
         const {userId, username} = req.user;
+        let newDescription = description;
         if (!userId) {
             return res.status(400).json({ success: false, error: "User ID is required" });
         }
         const task = await Task.findOne({title});
         if (!task) {
             return res.status(404).json({ success: false, error: "Task not found" });
+        }
+
+        if(isMerge){
+            newDescription = resolveConflict(task.description, description);
+
+        } else if(lastUpdated && new Date(lastUpdated) <= task.lastUpdated) {
+            if(!isOverwrite) return res.status(400).json({ success: false, conflict: true, error: "Task has been modified by another user", task });
         }
 
         if(assignedUser) {
@@ -107,7 +116,7 @@ const editTask = async (req, res) => {
 
         task.title = title || task.title;
         task.status = status || task.status;
-        task.description = description || task.description;
+        task.description = newDescription || task.description;
         task.assignedUser = assignedUser || task.assignedUser;
         task.priority = priority || task.priority;
 
