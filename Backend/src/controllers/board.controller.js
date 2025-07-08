@@ -5,6 +5,11 @@ const createBoard = async (req, res) => {
     try {
         const { boardName } = req.body;
 
+        const existingBoard = await TodoBoard.findOne({ boardName });
+        if (existingBoard) {
+            return res.status(400).json({ success: false, error: "Board with this name already exists" });
+        }
+
         const board = new TodoBoard({
             boardName
         })
