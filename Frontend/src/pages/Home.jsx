@@ -49,7 +49,6 @@ const Home = () => {
                 currentIndex++;
             } else {
                 clearInterval(typingInterval);
-                // Start typing subtitle after main text is done
                 setTimeout(() => {
                     let subtitleIndex = 0;
                     const subtitleInterval = setInterval(() => {

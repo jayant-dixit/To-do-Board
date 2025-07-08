@@ -5,12 +5,14 @@
 body {
     margin: 0;
     padding: 0;
+    height: fit-content;
 }
 
 .todo-board {
+    background-color: #006eff;
+    height: fit-content;
     min-height: 100vh;
     padding: 20px;
-    background-color: #006eff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -651,6 +653,7 @@ body {
     max-height: 350px;
     overflow-y: auto;
     padding-right: 8px;
+    width: 100%;
 }
 
 .activity-list::-webkit-scrollbar {
@@ -725,15 +728,19 @@ body {
 /* Responsive Design */
 @media (max-width: 1200px) {
     .board-container {
-        flex-direction: column;
+        flex-direction: row;
+    }
+
+    .column{
+        overflow-y: scroll;
     }
 
     .activity-log-dropdown {
-        position: relative;
-        top: 0;
-        right: 0;
-        width: 100%;
-        margin-top: 20px;
+        position: absolute;
+        top: -20px;
+        right: 70px;
+        max-width: 500px;
+        margin-top: 2px;
     }
 }
 
@@ -761,18 +768,25 @@ body {
 
     .activity-log-dropdown {
         width: calc(100% - 40px);
-        left: 20px;
+        position: absolute;
+        max-width: 300px;
+        /* left: 20px; */
         right: 20px;
+    }
+
+    .create-task-btn {
+        font-size: 0.7rem;
+    }
+    .activity-log-btn {
+        font-size: 0.7rem;
     }
 }
 
-/* Animation for drag and drop */
 .column.drag-over {
     background: rgba(52, 152, 219, 0.1);
     border: 2px dashed #3498db;
 }
 
-/* Smooth transitions */
 * {
     transition: all 0.2s ease;
 }
