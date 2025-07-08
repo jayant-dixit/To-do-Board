@@ -36,10 +36,10 @@ const registerUser = async (req, res, next) => {
         );
 
         res.cookie('accessToken', accessToken, {
-            maxAge: 3600000 * 24 * 7, // 1 hour in milliseconds
+            maxAge: 3600000 * 24 * 7,
             httpOnly: true,
             secure: true,
-            sameSite: 'strict'
+            sameSite: 'none'
         });
 
         return res.status(201).json({ success: true, message: 'User registered successfully', user });
@@ -74,7 +74,10 @@ const loginUser = async (req, res, next) => {
         );
 
         res.cookie('accessToken', accessToken, {
+            maxAge: 3600000 * 24 * 7,
             httpOnly: true,
+            secure: true,
+            sameSite: 'none'
         });
 
         return res.status(200).json({ success: true, message: 'Login successful', user });
